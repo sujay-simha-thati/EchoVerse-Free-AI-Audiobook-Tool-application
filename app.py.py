@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1Reu2WDrazb4d9NEE6Ume94xN3lW9SK5l
 """
 
-!pip install streamlit gTTS pyngrok
+
 
 # Commented out IPython magic to ensure Python compatibility.
 # %%writefile app.py
