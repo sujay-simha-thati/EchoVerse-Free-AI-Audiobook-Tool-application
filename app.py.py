@@ -61,4 +61,21 @@ Original file is located at
 #ngrok.set_auth_token("31xniORkZTRVih2G1aMVuU0G4jW_85m1qHKdaTAk1fZ4RdPZx")
 
 #public_url = ngrok.connect(8501)
-print("🚀 EchoVerse is live at:", public_url)
+#print("🚀 EchoVerse is live at:", public_url)
+import streamlit as st
+from gtts import gTTS
+import os
+
+st.title("🎧 EchoVerse – AI Audiobook Creator")
+
+text_input = st.text_area("Enter text to convert into audiobook:")
+
+if st.button("Generate Audio"):
+    if text_input.strip():
+        tts = gTTS(text_input)
+        tts.save("output.mp3")
+        audio_file = open("output.mp3", "rb")
+        st.audio(audio_file.read(), format="audio/mp3")
+    else:
+        st.warning("Please enter some text before generating.")
+
