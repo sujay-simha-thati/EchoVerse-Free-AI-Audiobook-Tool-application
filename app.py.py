@@ -55,10 +55,10 @@ Original file is located at
 #             st.download_button("⬇️ Download Audiobook", f, file_name="audiobook.mp3")
 #
 
-from pyngrok import ngrok
+#from pyngrok import ngrok
 
 # Set ngrok authtoken (do this once per runtime)
-ngrok.set_auth_token("31xniORkZTRVih2G1aMVuU0G4jW_85m1qHKdaTAk1fZ4RdPZx")
+#ngrok.set_auth_token("31xniORkZTRVih2G1aMVuU0G4jW_85m1qHKdaTAk1fZ4RdPZx")
 
 public_url = ngrok.connect(8501)
 print("🚀 EchoVerse is live at:", public_url)
