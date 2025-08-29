@@ -66,16 +66,41 @@ import streamlit as st
 from gtts import gTTS
 import os
 
+st.set_page_config(page_title="EchoVerse – AI Audiobook Tool", page_icon="🎧")
+
 st.title("🎧 EchoVerse – AI Audiobook Creator")
+st.write("Convert your text or `.txt` files into audiobooks using AI Text-to-Speech.")
 
-text_input = st.text_area("Enter text to convert into audiobook:")
+# --- User input ---
+text_input = st.text_area("✍️ Enter text below:")
 
-if st.button("Generate Audio"):
-    if text_input.strip():
-        tts = gTTS(text_input)
-        tts.save("output.mp3")
-        audio_file = open("output.mp3", "rb")
+uploaded_file = st.file_uploader("📂 Or upload a .txt file", type=["txt"])
+
+# Extract text from uploaded file if present
+file_text = ""
+if uploaded_file is not None:
+    file_text = uploaded_file.read().decode("utf-8")
+
+# Combine inputs
+final_text = text_input if text_input.strip() else file_text
+
+# --- Generate audio ---
+if st.button("🎙️ Generate Audio"):
+    if final_text.strip():
+        tts = gTTS(final_text)
+        output_path = "output.mp3"
+        tts.save(output_path)
+
+        st.success("✅ Audiobook generated successfully!")
+        audio_file = open(output_path, "rb")
         st.audio(audio_file.read(), format="audio/mp3")
-    else:
-        st.warning("Please enter some text before generating.")
 
+        # Download button
+        st.download_button(
+            label="⬇️ Download MP3",
+            data=open(output_path, "rb"),
+            file_name="audiobook.mp3",
+            mime="audio/mp3"
+        )
+    else:
+        st.warning("Please enter text or upload a `.txt` file before generating.")
