@@ -64,43 +64,101 @@ Original file is located at
 #print("🚀 EchoVerse is live at:", public_url)
 import streamlit as st
 from gtts import gTTS
+from ibm_watson import TextToSpeechV1
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 import os
 
+# ---------------- STREAMLIT APP CONFIG ----------------
 st.set_page_config(page_title="EchoVerse – AI Audiobook Tool", page_icon="🎧")
-
 st.title("🎧 EchoVerse – AI Audiobook Creator")
-st.write("Convert your text or `.txt` files into audiobooks using AI Text-to-Speech.")
+st.write("Convert text or `.txt` files into audiobooks in **multiple languages**!")
 
-# --- User input ---
+# ---------------- INPUT SECTION ----------------
 text_input = st.text_area("✍️ Enter text below:")
-
 uploaded_file = st.file_uploader("📂 Or upload a .txt file", type=["txt"])
 
-# Extract text from uploaded file if present
 file_text = ""
 if uploaded_file is not None:
     file_text = uploaded_file.read().decode("utf-8")
 
-# Combine inputs
 final_text = text_input if text_input.strip() else file_text
 
-# --- Generate audio ---
-if st.button("🎙️ Generate Audio"):
-    if final_text.strip():
-        tts = gTTS(final_text)
-        output_path = "output.mp3"
-        tts.save(output_path)
+# ---------------- OPTIONS ----------------
+st.subheader("🌍 Choose Language & Engine")
 
+engine = st.radio("Select TTS Engine:", ["Google gTTS", "IBM Watson"])
+
+if engine == "Google gTTS":
+    language = st.selectbox(
+        "Select Language",
+        [
+            "en",  # English
+            "es",  # Spanish
+            "fr",  # French
+            "de",  # German
+            "hi",  # Hindi
+            "zh-CN",  # Chinese
+            "ja",  # Japanese
+        ],
+        index=0
+    )
+else:
+    # IBM Watson needs API keys
+    ibm_api_key = st.text_input("🔑 IBM Watson API Key", type="password")
+    ibm_url = st.text_input("🌐 IBM Watson URL (from IBM Cloud)")
+
+    voice = st.selectbox(
+        "Select IBM Watson Voice",
+        [
+            "en-US_AllisonV3Voice",
+            "en-GB_KateV3Voice",
+            "es-ES_EnriqueV3Voice",
+            "fr-FR_ReneeV3Voice",
+            "de-DE_DieterV3Voice",
+            "ja-JP_EmiV3Voice"
+        ]
+    )
+
+# ---------------- GENERATE AUDIO ----------------
+if st.button("🎙️ Generate Audiobook"):
+    if final_text.strip():
+        output_path = "audiobook.mp3"
+
+        if engine == "Google gTTS":
+            # Google TTS
+            tts = gTTS(final_text, lang=language)
+            tts.save(output_path)
+
+        else:
+            # IBM Watson TTS
+            if not ibm_api_key or not ibm_url:
+                st.error("⚠️ Please provide IBM Watson API Key and URL.")
+                st.stop()
+
+            authenticator = IAMAuthenticator(ibm_api_key)
+            tts_service = TextToSpeechV1(authenticator=authenticator)
+            tts_service.set_service_url(ibm_url)
+
+            with open(output_path, "wb") as audio_file:
+                audio_file.write(
+                    tts_service.synthesize(
+                        final_text,
+                        voice=voice,
+                        accept="audio/mp3"
+                    ).get_result().content
+                )
+
+        # ---------------- OUTPUT ----------------
         st.success("✅ Audiobook generated successfully!")
         audio_file = open(output_path, "rb")
         st.audio(audio_file.read(), format="audio/mp3")
 
-        # Download button
         st.download_button(
             label="⬇️ Download MP3",
             data=open(output_path, "rb"),
             file_name="audiobook.mp3",
             mime="audio/mp3"
         )
+
     else:
         st.warning("Please enter text or upload a `.txt` file before generating.")
